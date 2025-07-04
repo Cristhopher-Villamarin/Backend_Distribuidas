@@ -1,21 +1,22 @@
-_format_version: "1.1"
+_format_version: "3.0"
+
 services:
-  - name: usuarios
+  - name: usuarios-service
     url: http://usuarios:3000
     routes:
       - name: usuarios-route
         paths:
           - /api/usuarios
-# - name: categorias
-#   url: http://categorias:3001
-#   routes:
-#     - name: categorias-route
-#       paths:
-#         - /api/categorias
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+        strip_path: false
 
 plugins:
   - name: cors
-    service: usuarios
+    service: usuarios-service
     config:
       origins:
         - "*"
@@ -24,8 +25,11 @@ plugins:
         - POST
         - PUT
         - DELETE
+        - OPTIONS
       headers:
         - Accept
         - Authorization
         - Content-Type
+        - X-Requested-With
       credentials: true
+      preflight_continue: false
