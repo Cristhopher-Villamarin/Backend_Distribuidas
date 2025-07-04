@@ -18,3 +18,7 @@ exports.actualizarUsuario = async (idCliente, data) => {
 };
 
 exports.eliminarUsuario = async (idCliente) => Usuario.destroy({ where: { idCliente } });
+
+exports.obtenerTodos = async () => {
+  return Usuario.findAll();
+};
