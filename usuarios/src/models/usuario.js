@@ -33,7 +33,7 @@ const Usuario = sequelize.define('Usuario', {
     }
   },
   email: {
-    type: DataTypes.STRING(30),
+    type: DataTypes.STRING(60),
     allowNull: false,
     unique: true,
     validate: {

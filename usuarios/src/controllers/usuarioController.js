@@ -45,15 +45,27 @@ exports.actualizarPerfil = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+exports.actualizarUsuarioPorAdmin = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const usuario = await usuarioService.buscarPorId(id);
+    if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
+    await usuarioService.actualizarUsuario(id, req.body);
+    await notificationService.sendNotification('usuarios', { tipo: 'actualizacion_por_admin', usuario: usuario.email });
+    res.json({ message: 'Usuario actualizado correctamente por administrador' });
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.eliminarUsuario = async (req, res, next) => {
   try {
-    if (req.user.rol !== 'admin' && req.user.id !== parseInt(req.params.id)) {
-      return res.status(403).json({ error: 'No tienes permisos para eliminar este usuario' });
-    }
-    const eliminado = await usuarioService.eliminarUsuario(req.params.id);
-    if (!eliminado) return res.status(404).json({ error: 'Usuario no encontrado' });
-    await notificationService.sendNotification('usuarios', { tipo: 'eliminacion', usuario: req.params.id });
-    res.json({ mensaje: 'Usuario eliminado correctamente' });
+    const { id } = req.params;
+    const usuario = await usuarioService.buscarPorId(id);
+    if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
+    await usuarioService.eliminarUsuario(id);
+    await notificationService.sendNotification('usuarios', { tipo: 'eliminacion', usuario: usuario.email });
+    res.json({ message: 'Usuario eliminado correctamente' });
   } catch (err) {
     next(err);
   }
