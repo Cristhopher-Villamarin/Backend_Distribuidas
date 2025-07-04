@@ -1,0 +1,31 @@
+_format_version: "1.1"
+services:
+  - name: usuarios
+    url: http://usuarios:3000
+    routes:
+      - name: usuarios-route
+        paths:
+          - /api/usuarios
+# - name: categorias
+#   url: http://categorias:3001
+#   routes:
+#     - name: categorias-route
+#       paths:
+#         - /api/categorias
+
+plugins:
+  - name: cors
+    service: usuarios
+    config:
+      origins:
+        - "*"
+      methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+      headers:
+        - Accept
+        - Authorization
+        - Content-Type
+      credentials: true
