@@ -1,10 +1,10 @@
 version: '3.8'
 
 services:
-  # CockroachDB cluster de 7 nodos
+  # CockroachDB cluster de 2 nodos (puedes agregar más nodos si lo deseas)
   cockroachdb-node1:
     image: cockroachdb/cockroach:v23.1.11
-    command: start --insecure --join=cockroachdb-node1,cockroachdb-node2,cockroachdb-node3,cockroachdb-node4,cockroachdb-node5,cockroachdb-node6,cockroachdb-node7
+    command: start --insecure --join=cockroachdb-node1,cockroachdb-node2
     hostname: cockroachdb-node1
     ports:
       - "26257:26257"
@@ -13,6 +13,20 @@ services:
       - cockroach-data1:/cockroach/cockroach-data
     networks:
       - app-network
+
+  cockroachdb-node2:
+    image: cockroachdb/cockroach:v23.1.11
+    command: start --insecure --join=cockroachdb-node1,cockroachdb-node2
+    hostname: cockroachdb-node2
+    ports:
+      - "26258:26257" # Puerto SQL diferente para evitar conflictos
+      - "8082:8080"   # Puerto UI diferente
+    volumes:
+      - cockroach-data2:/cockroach/cockroach-data
+    networks:
+      - app-network
+    depends_on:
+      - cockroachdb-node1
 
   # RabbitMQ
   rabbitmq:
@@ -43,6 +57,7 @@ services:
       - app-network
     depends_on:
       - usuarios
+      - categorias
     restart: unless-stopped
 
   # Microservicio de usuarios
@@ -69,14 +84,33 @@ services:
     networks:
       - app-network
 
-  # Aquí puedes agregar más microservicios, por ejemplo:
-  # categorias, eventos, compras, etc.
-  # Solo copia y ajusta el bloque de "usuarios" para cada uno.
+  # Microservicio de categorias
+  categorias:
+    build: ./categorias
+    ports:
+      - "3001:3001"
+    environment:
+      DB_HOST: cockroachdb-node1
+      DB_PORT: 26257
+      DB_NAME: categoriasdb
+      DB_USER: root
+      DB_PASSWORD: ""
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      JWT_SECRET: supersecreto123
+      PORT: 3001
+      NODE_ENV: development
+    depends_on:
+      - cockroachdb-node1
+      - rabbitmq
+    networks:
+      - app-network
 
 volumes:
   cockroach-data1:
   cockroach-data2:
-  cockroach-data3:
 
 networks:
   app-network:
