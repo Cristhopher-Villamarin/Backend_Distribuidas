@@ -65,3 +65,43 @@ exports.usuarioValidationRules = () => [
     .notEmpty().withMessage('La provincia es obligatoria')
     .isLength({ max: 20 }).withMessage('La provincia no debe exceder los 20 caracteres'),
 ];
+
+exports.actualizarUsuarioValidationRules = () => [
+  body('cedula')
+    .optional()
+    .custom(validarCedulaEcuatoriana).withMessage('Cédula ecuatoriana inválida'),
+  body('nombre')
+    .optional()
+    .isLength({ min: 2, max: 20 }).withMessage('El nombre debe tener entre 2 y 20 caracteres')
+    .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/).withMessage('El nombre solo debe contener letras y espacios'),
+  body('apellido')
+    .optional()
+    .isLength({ min: 2, max: 20 }).withMessage('El apellido debe tener entre 2 y 20 caracteres')
+    .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/).withMessage('El apellido solo debe contener letras y espacios'),
+  body('email')
+    .optional()
+    .isEmail().withMessage('Debe ser un email válido')
+    .normalizeEmail()
+    .matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/).withMessage('Formato de email inválido'),
+  body('telefono')
+    .optional()
+    .isLength({ min: 7, max: 15 }).withMessage('El teléfono debe tener entre 7 y 15 dígitos')
+    .matches(/^\d+$/).withMessage('El teléfono solo debe contener dígitos'),
+  body('contrasenia')
+    .optional()
+    .isLength({ min: 8, max: 50 }).withMessage('La contraseña debe tener entre 8 y 50 caracteres')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)
+    .withMessage('La contraseña debe contener al menos una letra mayúscula, una minúscula, un número y un carácter especial (@$!%*?&)'),
+  body('direccion')
+    .optional()
+    .isLength({ min: 5, max: 50 }).withMessage('La dirección debe tener entre 5 y 50 caracteres'),
+  body('ciudad')
+    .optional()
+    .isLength({ max: 20 }).withMessage('La ciudad no debe exceder los 20 caracteres'),
+  body('provincia')
+    .optional()
+    .isLength({ max: 20 }).withMessage('La provincia no debe exceder los 20 caracteres'),
+  body('rol')
+    .optional()
+    .isIn(['cliente', 'admin', 'organizador']).withMessage('Rol inválido'),
+];

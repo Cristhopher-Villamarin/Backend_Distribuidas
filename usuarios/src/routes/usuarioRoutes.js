@@ -1,6 +1,6 @@
 const express = require('express');
-const { registrar, login } = require('../controllers/usuarioController');
-const { usuarioValidationRules } = require('../utils/validations');
+const { registrar, login, obtenerPerfil, actualizarPerfil, actualizarUsuarioPorAdmin, eliminarUsuario, obtenerTodos } = require('../controllers/usuarioController');
+const { usuarioValidationRules, actualizarUsuarioValidationRules } = require('../utils/validations');
 const { validationResult } = require('express-validator');
 const auth = require('../middleware/authMiddleware');
 const role = require('../middleware/roleMiddleware');
@@ -38,9 +38,6 @@ router.put('/:id', auth, role('admin'), actualizarUsuarioValidationRules(), (req
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
   next();
 }, actualizarUsuarioPorAdmin);
-
-// Eliminar un usuario por ID (requiere token y rol admin, o ser el propio usuario)
-router.delete('/:id', auth, role('admin'), eliminarUsuario);
 
 // Eliminar un usuario por ID (solo admin)
 router.delete('/:id', auth, role('admin'), eliminarUsuario);
