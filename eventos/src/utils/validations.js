@@ -2,8 +2,8 @@ const { body } = require('express-validator');
 
 exports.eventoValidationRules = () => [
   body('idCategoria')
-    .notEmpty().withMessage('La categoría es obligatoria')
-    .isInt().withMessage('El ID de categoría debe ser un número entero'),
+    .notEmpty().withMessage('La categoría es obligatoria'),
+  
   body('nombreEvento')
     .notEmpty().withMessage('El nombre del evento es obligatorio')
     .isLength({ min: 2, max: 20 }).withMessage('El nombre debe tener entre 2 y 20 caracteres'),

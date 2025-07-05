@@ -166,6 +166,36 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  # Microservicio de localidades
+  localidades:
+    build: ./localidades
+    ports:
+      - "3003:3003"
+    environment:
+      DB_HOST: cockroachdb-node1
+      DB_PORT: 26257
+      DB_NAME: localidadesdb
+      DB_USER: root
+      DB_PASSWORD: ""
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      JWT_SECRET: supersecreto123
+      PORT: 3003
+      NODE_ENV: development
+    depends_on:
+      cockroachdb-node1:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3003"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   cockroach-data1:
