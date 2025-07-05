@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # CockroachDB cluster de 2 nodos (puedes agregar más nodos si lo deseas)
+  # CockroachDB cluster de 2 nodos
   cockroachdb-node1:
     image: cockroachdb/cockroach:v23.1.11
     command: start --insecure --join=cockroachdb-node1,cockroachdb-node2,cockroachdb-node3
@@ -13,6 +13,11 @@ services:
       - cockroach-data1:/cockroach/cockroach-data
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD", "cockroach", "sql", "--insecure", "-e", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   cockroachdb-node2:
     image: cockroachdb/cockroach:v23.1.11
@@ -51,6 +56,11 @@ services:
       - "15672:15672"
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Kong API Gateway
   kong:
@@ -71,8 +81,12 @@ services:
     networks:
       - app-network
     depends_on:
-      - usuarios
-      - categorias
+      usuarios:
+        condition: service_started
+      categorias:
+        condition: service_started
+      eventos:
+        condition: service_started
     restart: unless-stopped
 
   # Microservicio de usuarios
@@ -94,10 +108,17 @@ services:
       PORT: 3000
       NODE_ENV: development
     depends_on:
-      - cockroachdb-node1
-      - rabbitmq
+      cockroachdb-node1:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Microservicio de categorias
   categorias:
@@ -118,10 +139,78 @@ services:
       PORT: 3001
       NODE_ENV: development
     depends_on:
-      - cockroachdb-node1
-      - rabbitmq
+      cockroachdb-node1:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Microservicio de eventos
+  eventos:
+    build: ./eventos
+    ports:
+      - "3002:3002"
+    environment:
+      DB_HOST: cockroachdb-node1
+      DB_PORT: 26257
+      DB_NAME: eventosdb
+      DB_USER: root
+      DB_PASSWORD: ""
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      JWT_SECRET: supersecreto123
+      PORT: 3002
+      NODE_ENV: development
+    depends_on:
+      cockroachdb-node1:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  # Microservicio de localidades
+  localidades:
+    build: ./localidades
+    ports:
+      - "3003:3003"
+    environment:
+      DB_HOST: cockroachdb-node1
+      DB_PORT: 26257
+      DB_NAME: localidadesdb
+      DB_USER: root
+      DB_PASSWORD: ""
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      JWT_SECRET: supersecreto123
+      PORT: 3003
+      NODE_ENV: development
+    depends_on:
+      cockroachdb-node1:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3003"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Microservicio de eventos
   eventos:

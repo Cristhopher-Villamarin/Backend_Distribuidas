@@ -3,7 +3,7 @@ const { sequelize } = require('../config');
 
 const Evento = sequelize.define('Evento', {
   idEvento: {
-    type: DataTypes.BIGINT,
+    type: DataTypes.INTEGER,
     autoIncrement: true,
     primaryKey: true
   },
@@ -15,11 +15,11 @@ const Evento = sequelize.define('Evento', {
     }
   },
   nombreEvento: {
-    type: DataTypes.STRING(100),
+    type: DataTypes.STRING(20),
     allowNull: false,
     validate: {
       notNull: { msg: 'El nombre del evento es obligatorio' },
-      len: { args: [2, 100], msg: 'El nombre debe tener entre 2 y 100 caracteres' }
+      len: { args: [2, 20], msg: 'El nombre debe tener entre 2 y 20 caracteres' }
     }
   },
   fecha_inicio: {
@@ -27,7 +27,7 @@ const Evento = sequelize.define('Evento', {
     allowNull: false,
     validate: {
       notNull: { msg: 'La fecha de inicio es obligatoria' },
-      isDate: { msg: 'Formato de fecha inválido' }
+      isDate: { msg: 'La fecha de inicio debe ser válida' }
     }
   },
   fecha_fin: {
@@ -35,39 +35,36 @@ const Evento = sequelize.define('Evento', {
     allowNull: false,
     validate: {
       notNull: { msg: 'La fecha de fin es obligatoria' },
-      isDate: { msg: 'Formato de fecha inválido' }
+      isDate: { msg: 'La fecha de fin debe ser válida' }
     }
   },
   hora_inicio: {
-    type: DataTypes.TIME,
+    type: DataTypes.DATE,
     allowNull: false,
     validate: {
       notNull: { msg: 'La hora de inicio es obligatoria' },
-      isTime: { msg: 'Formato de hora inválido' }
+      isDate: { msg: 'La hora de inicio debe ser válida' }
     }
   },
   ubicacion: {
-    type: DataTypes.STRING(200),
+    type: DataTypes.STRING(100),
     allowNull: false,
     validate: {
       notNull: { msg: 'La ubicación es obligatoria' },
-      len: { args: [5, 200], msg: 'La ubicación debe tener entre 5 y 200 caracteres' }
+      len: { args: [2, 100], msg: 'La ubicación debe tener entre 2 y 100 caracteres' }
     }
   },
   descripcion: {
-    type: DataTypes.STRING(500),
-    allowNull: true,
-    validate: {
-      len: { args: [0, 500], msg: 'La descripción no debe exceder los 500 caracteres' }
-    }
+    type: DataTypes.STRING(100),
+    allowNull: true
   },
   estado: {
     type: DataTypes.STRING(20),
     allowNull: false,
-    defaultValue: 'pendiente',
+    defaultValue: 'activo',
     validate: {
       isIn: {
-        args: [['pendiente', 'activo', 'cancelado', 'completado']],
+        args: [['activo', 'inactivo', 'cancelado']],
         msg: 'Estado inválido'
       }
     }
@@ -87,8 +84,5 @@ const Evento = sequelize.define('Evento', {
   timestamps: true
 });
 
-Evento.associate = (models) => {
-  Evento.belongsTo(models.Categoria, { foreignKey: 'idCategoria' });
-};
 
 module.exports = Evento;

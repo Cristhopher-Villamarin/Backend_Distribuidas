@@ -39,6 +39,20 @@ services:
           - PUT
           - DELETE
         strip_path: false
+  
+  - name: localidades-service
+    url: http://localidades:3003
+    routes:
+    - name: localidades-route
+      paths:
+        - /api/localidades
+      methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+      strip_path: false
+
 
 plugins:
   - name: cors
@@ -78,9 +92,28 @@ plugins:
         - X-Requested-With
       credentials: true
       preflight_continue: false
-  
+
   - name: cors
     service: eventos-service
+    config:
+      origins:
+        - "*"
+      methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+      headers:
+        - Accept
+        - Authorization
+        - Content-Type
+        - X-Requested-With
+      credentials: true
+      preflight_continue: false
+
+  - name: cors
+    service: localidades-service
     config:
       origins:
         - "*"

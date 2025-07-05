@@ -21,7 +21,7 @@ exports.obtenerTodos = async (req, res, next) => {
 // Obtener evento por ID
 exports.obtenerPorId = async (req, res, next) => {
   try {
-    const evento = await eventoService.obtenerPorId(req.params.id);
+    const evento = await eventoService.buscarPorId(req.params.id);
     if (!evento) return res.status(404).json({ error: 'Evento no encontrado' });
     res.json(evento);
   } catch (err) { next(err); }
@@ -31,8 +31,6 @@ exports.obtenerPorId = async (req, res, next) => {
 exports.actualizarEvento = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const evento = await eventoService.buscarPorId(id);
-    if (!evento) return res.status(404).json({ error: 'Evento no encontrado' });
     await eventoService.actualizarEvento(id, req.body);
     await notificationService.sendNotification('eventos', { tipo: 'actualizacion', evento: id });
     res.json({ message: 'Evento actualizado correctamente' });
@@ -43,8 +41,6 @@ exports.actualizarEvento = async (req, res, next) => {
 exports.eliminarEvento = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const evento = await eventoService.buscarPorId(id);
-    if (!evento) return res.status(404).json({ error: 'Evento no encontrado' });
     await eventoService.eliminarEvento(id);
     await notificationService.sendNotification('eventos', { tipo: 'eliminacion', evento: id });
     res.json({ message: 'Evento eliminado correctamente' });

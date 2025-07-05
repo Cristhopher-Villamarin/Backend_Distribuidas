@@ -27,7 +27,7 @@ socketHandler(io);
 // Sincronizar modelos y levantar servidor
 sequelize.sync().then(() => {
   server.listen(process.env.PORT || 3002, () => {
-    console.log(`Microservicio de eventos corriendo en el puerto ${process.env.PORT || 3002} a las ${new Date().toLocaleString('es-ES', { timeZone: 'America/Lima' })}`);
+    console.log('Microservicio de eventos corriendo en el puerto', process.env.PORT || 3002);
   });
 }).catch(err => {
   console.error('Error al conectar con la base de datos:', err);
