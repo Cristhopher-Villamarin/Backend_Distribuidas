@@ -4,7 +4,7 @@ services:
   # CockroachDB cluster de 2 nodos
   cockroachdb-node1:
     image: cockroachdb/cockroach:v23.1.11
-    command: start --insecure --join=cockroachdb-node1,cockroachdb-node2,cockroachdb-node3
+    command: start --insecure --join=cockroachdb-node1,cockroachdb-node2
     hostname: cockroachdb-node1
     ports:
       - "26257:26257"
@@ -21,7 +21,7 @@ services:
 
   cockroachdb-node2:
     image: cockroachdb/cockroach:v23.1.11
-    command: start --insecure --join=cockroachdb-node1,cockroachdb-node2,cockroachdb-node3
+    command: start --insecure --join=cockroachdb-node1,cockroachdb-node2
     hostname: cockroachdb-node2
     ports:
       - "26258:26257" # Puerto SQL diferente para evitar conflictos
@@ -32,21 +32,6 @@ services:
       - app-network
     depends_on:
       - cockroachdb-node1
-    
-  cockroachdb-node3:
-    image: cockroachdb/cockroach:v23.1.11
-    command: start --insecure --join=cockroachdb-node1,cockroachdb-node2,cockroachdb-node3
-    hostname: cockroachdb-node3
-    ports:
-      - "26259:26257"
-      - "8083:8080"
-    volumes:
-      - cockroach-data3:/cockroach/cockroach-data
-    networks:
-      - app-network
-    depends_on:
-      - cockroachdb-node1
-      - cockroachdb-node2
 
   # RabbitMQ
   rabbitmq:
@@ -212,34 +197,9 @@ services:
       timeout: 5s
       retries: 5
 
-  # Microservicio de eventos
-  eventos:
-    build: ./eventos
-    ports:
-      - "3002:3002"
-    environment:
-      DB_HOST: cockroachdb-node3
-      DB_PORT: 26257
-      DB_NAME: eventosdb
-      DB_USER: root
-      DB_PASSWORD: ""
-      RABBITMQ_HOST: rabbitmq
-      RABBITMQ_PORT: 5672
-      RABBITMQ_USER: guest
-      RABBITMQ_PASSWORD: guest
-      JWT_SECRET: supersecreto123
-      PORT: 3002
-      NODE_ENV: development
-    depends_on:
-      - cockroachdb-node1
-      - rabbitmq
-    networks:
-      - app-network
-
 volumes:
   cockroach-data1:
   cockroach-data2:
-  cockroach-data3:
 
 networks:
   app-network:
