@@ -22,7 +22,7 @@ exports.eventoValidationRules = () => [
     }),
   body('hora_inicio')
     .notEmpty().withMessage('La hora de inicio es obligatoria')
-    .matches(/^([01]\d|2[0-3]):([0-5]\d)$/).withMessage('La hora de inicio debe estar en formato HH:MM (24 horas)'),
+    .isISO8601().withMessage('La hora de inicio debe ser válida'),
   body('ubicacion')
     .notEmpty().withMessage('La ubicación es obligatoria')
     .isLength({ min: 2, max: 100 }).withMessage('La ubicación debe tener entre 2 y 100 caracteres'),
