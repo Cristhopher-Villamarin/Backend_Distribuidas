@@ -28,8 +28,10 @@ const Localidad = sequelize.define('Localidad', {
   },
   nombre_localidad: {
     type: DataTypes.STRING(20),
-    allowNull: false
-  }
+    allowNull: false,
+    unique: true,
+  },
+  
 }, {
   tableName: 'Localidad',
   timestamps: true
