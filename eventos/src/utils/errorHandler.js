@@ -23,6 +23,9 @@ module.exports = (err, req, res, next) => {
   } else if (err.message.includes('Unauthorized')) {
     status = 403;
     message = 'No tienes permiso para realizar esta acción.';
+  } else if (err.name === 'SequelizeUniqueConstraintError') {
+    status = 400;
+    message = 'Ya existe un evento con el nombre especificado. Por favor, elige un nombre diferente.';
   }
 
   res.status(status).json({ error: message });

@@ -20,7 +20,8 @@ const Evento = sequelize.define('Evento', {
     validate: {
       notNull: { msg: 'El nombre del evento es obligatorio' },
       len: { args: [2, 20], msg: 'El nombre debe tener entre 2 y 20 caracteres' }
-    }
+    },
+    unique: true
   },
   fecha_inicio: {
     type: DataTypes.DATE,
