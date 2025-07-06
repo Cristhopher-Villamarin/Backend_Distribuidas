@@ -21,7 +21,7 @@ exports.login = async (req, res, next) => {
     if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
     const valido = await bcrypt.compare(req.body.contrasenia, usuario.contrasenia);
     if (!valido) return res.status(401).json({ error: 'Contraseña incorrecta' });
-    const token = jwt.sign({ id: usuario.idCliente, rol: usuario.rol }, process.env.JWT_SECRET, { expiresIn: '8h' });
+    const token = jwt.sign({ id: usuario.idCliente, rol: usuario.rol }, process.env.JWT_SECRET, { expiresIn: '40m' });
     res.json({ token });
   } catch (err) { next(err); }
 };

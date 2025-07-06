@@ -13,7 +13,8 @@ const Categoria = sequelize.define('Categoria', {
     validate: {
       notNull: { msg: 'El nombre es obligatorio' },
       len: { args: [2, 50], msg: 'El nombre debe tener entre 2 y 50 caracteres' }
-    }
+    },
+    unique: true
   },
   descripcion: {
     type: DataTypes.STRING(200),
