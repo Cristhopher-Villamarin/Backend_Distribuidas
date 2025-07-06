@@ -6,10 +6,6 @@ exports.localidadValidationRules = () => [
     .notEmpty().withMessage('El evento es obligatorio')
     .isInt({ min: 1 }).withMessage('El idEvento debe ser un número entero positivo'),
 
-  body('precio')
-    .notEmpty().withMessage('El precio es obligatorio')
-    .isDecimal({ decimal_digits: '0,2' }).withMessage('El precio debe ser un número decimal con hasta 2 decimales'),
-
   body('capacidad')
     .notEmpty().withMessage('La capacidad es obligatoria')
     .isInt({ min: 1 }).withMessage('La capacidad debe ser un número entero positivo'),

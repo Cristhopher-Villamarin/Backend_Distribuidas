@@ -14,10 +14,7 @@ const Localidad = sequelize.define('Localidad', {
       notNull: { msg: 'El evento es obligatorio' }
     }
   },
-  precio: {
-    type: DataTypes.DECIMAL(10,2),
-    allowNull: false
-  },
+
   capacidad: {
     type: DataTypes.INTEGER,
     allowNull: false
