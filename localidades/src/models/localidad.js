@@ -14,10 +14,7 @@ const Localidad = sequelize.define('Localidad', {
       notNull: { msg: 'El evento es obligatorio' }
     }
   },
-  precio: {
-    type: DataTypes.DECIMAL(10,2),
-    allowNull: false
-  },
+
   capacidad: {
     type: DataTypes.INTEGER,
     allowNull: false
@@ -28,8 +25,10 @@ const Localidad = sequelize.define('Localidad', {
   },
   nombre_localidad: {
     type: DataTypes.STRING(20),
-    allowNull: false
-  }
+    allowNull: false,
+    unique: true,
+  },
+  
 }, {
   tableName: 'Localidad',
   timestamps: true
