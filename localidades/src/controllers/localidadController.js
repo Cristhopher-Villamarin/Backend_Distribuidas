@@ -73,14 +73,20 @@ exports.obtenerTodosAsientos = async (req, res, next) => {
   }
 };
 
+
+
 exports.obtenerAsientoPorId = async (req, res, next) => {
   try {
     const asiento = await localidadService.buscarAsientoPorId(req.params.id);
     if (!asiento) return res.status(404).json({ error: 'Asiento no encontrado' });
-    res.json(asiento);
-  } catch (err) {
-    next(err);
-  }
+    res.json({
+      idAsiento: asiento.idAsiento,
+      fila: asiento.fila,
+      numero: asiento.numero,
+      precio: asiento.precio,
+      estado: asiento.estado
+    }); // Asegúrate de devolver estos campos
+  } catch (err) { next(err); }
 };
 
 exports.actualizarAsiento = async (req, res, next) => {

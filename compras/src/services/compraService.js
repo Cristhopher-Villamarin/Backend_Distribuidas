@@ -4,14 +4,34 @@ const QRCode = require('qrcode');
 
 exports.crearCompra = async (idUsuario, data) => {
   const asientoIds = data.asientos;
+  
+  // Mejorar el manejo de errores y la URL
   const asientoDetalles = await Promise.all(asientoIds.map(async (id) => {
-    const response = await axios.get(`http://kong:8000/api/localidades/asientos/${id}`);
-    const { fila, numero, precio, estado } = response.data;
-    if (!fila || !numero || !precio || estado !== 'disponible') {
-      throw new Error(`El asiento ${id} no está disponible o tiene datos inválidos.`);
+    try {
+      // Verificar la URL correcta según tus rutas
+      const response = await axios.get(`http://kong:8000/api/localidades/asientos/${id}`);
+      
+      // Verificar si la respuesta tiene los datos esperados
+      if (!response.data) {
+        throw new Error(`No se encontraron datos para el asiento ${id}`);
+      }
+      
+      const { fila, numero, precio, estado } = response.data;
+      
+      if (!fila || !numero || precio === undefined || estado !== 'disponible') {
+        throw new Error(`El asiento ${id} no está disponible o tiene datos inválidos. Estado: ${estado}`);
+      }
+      
+      return { idAsiento: id, fila, numero, precio };
+    } catch (error) {
+      console.error(`Error al obtener datos del asiento ${id}:`, error.message);
+      if (error.response) {
+        console.error(`Status: ${error.response.status}, Data:`, error.response.data);
+      }
+      throw new Error(`Error al obtener datos del asiento ${id}: ${error.message}`);
     }
-    return { idAsiento: id, fila, numero, precio };
   }));
+  
   const subtotal = asientoDetalles.reduce((sum, detalle) => sum + detalle.precio, 0);
   const iva = subtotal * 0.15; // IVA establecido en 15%
   const montoTotal = subtotal + iva;
@@ -29,20 +49,28 @@ exports.crearCompra = async (idUsuario, data) => {
   });
 
   // Preparar datos para las entradas y enviar solicitud al microservicio de entradas
-  const entradaData = asientoDetalles.map((detalle) => ({
-    idCompra: compra.idCompra,
-    idAsiento: detalle.idAsiento,
-    codigoQR: QRCode.toDataURL(`Entrada-${compra.idCompra}-${detalle.idAsiento}-${Date.now()}`), // Genera QR como string
-    estado: 'activa'
+  const entradaData = await Promise.all(asientoDetalles.map(async (detalle) => {
+    // Generar QR como string usando await
+    const qrCode = await QRCode.toDataURL(`Entrada-${compra.idCompra}-${detalle.idAsiento}-${Date.now()}`);
+    
+    return {
+      idCompra: compra.idCompra,
+      idAsiento: detalle.idAsiento,
+      codigoQR: qrCode,
+      estado: 'activa'
+    };
   }));
 
   // Enviar solicitud al microservicio de entradas para crear las entradas
-  await axios.post('http://kong:8000/api/entradas/bulk', entradaData, {
-    headers: { 'Content-Type': 'application/json' }
-  }).catch(err => {
+  try {
+    await axios.post('http://kong:8000/api/entradas/bulk', entradaData, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (err) {
     console.error('Error al crear entradas en el microservicio de entradas:', err.message);
     // Opcional: manejar el error (e.g., rollback de la compra si es crítico)
-  });
+    // Podrías hacer rollback de la compra aquí si es necesario
+  }
 
   return compra;
 };

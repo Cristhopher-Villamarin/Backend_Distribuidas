@@ -32,7 +32,7 @@ const Categoria = sequelize.define('Categoria', {
   }
 }, {
   tableName: 'Categoria',
-  timestamps: true
+  timestamps:true
 });
 
 Categoria.associate = (models) => {
