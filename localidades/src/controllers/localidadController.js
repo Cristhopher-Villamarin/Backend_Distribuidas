@@ -1,5 +1,7 @@
 const localidadService = require('../services/localidadService');
 const notificationService = require('../services/notificationService');
+const Localidad = require('../models/localidad');
+const Asiento = require('../models/asiento');
 
 // Controladores para Localidad
 exports.crearLocalidad = async (req, res, next) => {
