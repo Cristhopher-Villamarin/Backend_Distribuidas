@@ -1,46 +1,38 @@
 const { body } = require('express-validator');
 
-// Validación para Localidad
 exports.localidadValidationRules = () => [
   body('idEvento')
     .notEmpty().withMessage('El evento es obligatorio')
-    .isInt({ min: 1 }).withMessage('El idEvento debe ser un número entero positivo'),
-
+    .isInt().withMessage('El idEvento debe ser un número entero'),
+  body('precio')
+    .notEmpty().withMessage('El precio es obligatorio')
+    .isDecimal().withMessage('El precio debe ser decimal'),
   body('capacidad')
     .notEmpty().withMessage('La capacidad es obligatoria')
-    .isInt({ min: 1 }).withMessage('La capacidad debe ser un número entero positivo'),
-
+    .isInt().withMessage('La capacidad debe ser un número entero'),
   body('disponibilidad')
     .notEmpty().withMessage('La disponibilidad es obligatoria')
-    .isInt({ min: 0 }).withMessage('La disponibilidad debe ser un número entero igual o mayor a 0'),
-
+    .isInt().withMessage('La disponibilidad debe ser un número entero'),
   body('nombre_localidad')
     .notEmpty().withMessage('El nombre de la localidad es obligatorio')
-    .isLength({ min: 2, max: 20 }).withMessage('El nombre debe tener entre 2 y 20 caracteres')
-    .matches(/^[a-zA-Z0-9\sáéíóúÁÉÍÓÚñÑ]+$/).withMessage('El nombre solo debe contener letras, números y espacios'),
+    .isLength({ min: 2, max: 20 }).withMessage('El nombre debe tener entre 2 y 20 caracteres'),
 ];
 
 // Validación para Asiento
 exports.asientoValidationRules = () => [
   body('idLocalidad')
     .notEmpty().withMessage('La localidad es obligatoria')
-    .isInt({ min: 1 }).withMessage('El idLocalidad debe ser un número entero positivo'),
-
+    .isInt().withMessage('El idLocalidad debe ser un número entero'),
   body('fila')
     .notEmpty().withMessage('La fila es obligatoria')
-    .isLength({ min: 1, max: 10 }).withMessage('La fila debe tener entre 1 y 10 caracteres')
-    .matches(/^[A-Za-z0-9]+$/).withMessage('La fila solo debe contener letras o números'),
-
+    .isLength({ min: 1, max: 10 }).withMessage('La fila debe tener entre 1 y 10 caracteres'),
   body('numero')
     .notEmpty().withMessage('El número es obligatorio')
-    .isLength({ min: 1, max: 10 }).withMessage('El número debe tener entre 1 y 10 caracteres')
-    .matches(/^[A-Za-z0-9]+$/).withMessage('El número solo debe contener letras o números'),
-
+    .isLength({ min: 1, max: 10 }).withMessage('El número debe tener entre 1 y 10 caracteres'),
   body('estado')
     .notEmpty().withMessage('El estado es obligatorio')
     .isIn(['disponible', 'ocupado', 'reservado']).withMessage('Estado inválido'),
-
   body('precio')
     .optional()
-    .isDecimal({ decimal_digits: '0,2' }).withMessage('El precio debe ser un número decimal con hasta 2 decimales'),
+    .isDecimal().withMessage('El precio debe ser decimal'),
 ];

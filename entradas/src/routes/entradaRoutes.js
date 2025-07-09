@@ -10,15 +10,18 @@ const router = express.Router();
 // Obtener todas las entradas (solo admin)
 router.get('/', auth, role('admin'), obtenerTodasEntradas);
 
-// Obtener entrada por ID (solo admin)
-router.get('/:id', auth, role('admin'), obtenerEntradaPorId);
+// Obtener entradas del usuario autenticado (solo usuario) con compraIds como query
+router.get('/misentradas', auth, obtenerMisEntradas);
 
-// Crear entradas en bulk (solo interno, accesible por compras)
-router.post('/bulk', auth, role('admin'), (req, res, next) => {
+// Crear entradas en bulk (sin autenticación, para microservicio de compras)
+router.post('/bulk', entradaValidationRules(), (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
   next();
 }, crearEntradasBulk);
+
+// Obtener entrada por ID (solo admin)
+router.get('/:id', auth, role('admin'), obtenerEntradaPorId);
 
 // Actualizar entrada (solo admin)
 router.put('/:id', auth, role('admin'), entradaValidationRules(), (req, res, next) => {
@@ -29,8 +32,5 @@ router.put('/:id', auth, role('admin'), entradaValidationRules(), (req, res, nex
 
 // Eliminar entrada (solo admin)
 router.delete('/:id', auth, role('admin'), eliminarEntrada);
-
-// Obtener entradas del usuario autenticado (solo usuario) con compraIds como query
-router.get('/mis-entradas', auth, obtenerMisEntradas);
 
 module.exports = router;

@@ -11,5 +11,4 @@ module.exports = (err, req, res, next) => {
     method: req.method,
     status: statusCode
   });
-
 };

@@ -1,7 +1,5 @@
 const localidadService = require('../services/localidadService');
 const notificationService = require('../services/notificationService');
-const Localidad = require('../models/localidad');
-const Asiento = require('../models/asiento');
 
 // Controladores para Localidad
 exports.crearLocalidad = async (req, res, next) => {
@@ -55,48 +53,12 @@ exports.eliminarLocalidad = async (req, res, next) => {
   }
 };
 
-
+// Controladores para Asiento
 exports.crearAsiento = async (req, res, next) => {
   try {
-    const { idLocalidad, fila, numero, estado, precio } = req.body;
-
-    // 1. Validar existencia de la localidad
-    const localidad = await Localidad.findByPk(idLocalidad);
-    if (!localidad) {
-      return res.status(404).json({ error: 'Localidad no encontrada' });
-    }
-
-    // 2. Validar que no se exceda la capacidad
-    const totalAsientos = await Asiento.count({ where: { idLocalidad } });
-    if (totalAsientos >= localidad.capacidad) {
-      return res.status(400).json({
-        error: 'Capacidad alcanzada',
-        message: `No se pueden registrar más asientos. La capacidad máxima de esta localidad es ${localidad.capacidad}.`,
-      });
-    }
-
-    // 3. Validar que no exista el mismo asiento (fila + número) en la localidad
-    const asientoExistente = await Asiento.findOne({
-      where: { idLocalidad, fila, numero }
-    });
-    if (asientoExistente) {
-      return res.status(409).json({
-        error: 'Asiento duplicado',
-        message: `Ya existe un asiento en la fila "${fila}" y número "${numero}" en esta localidad.`,
-      });
-    }
-
-    // 4. Crear el asiento
-    const asiento = await Asiento.create({ idLocalidad, fila, numero, estado, precio });
-
-    // 5. Notificación y respuesta
-    await notificationService.sendNotification('asientos', {
-      tipo: 'creacion',
-      asiento: asiento.idAsiento
-    });
-
+    const asiento = await localidadService.crearAsiento(req.body);
+    await notificationService.sendNotification('asientos', { tipo: 'creacion', asiento: asiento.idAsiento });
     res.status(201).json(asiento);
-
   } catch (err) {
     next(err);
   }

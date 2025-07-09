@@ -1,27 +1,23 @@
+// compraService.js
 const Compra = require('../models/compra');
 const axios = require('axios');
 const QRCode = require('qrcode');
 
-exports.crearCompra = async (idUsuario, data) => {
-  const asientoIds = data.asientos;
+exports.crearCompra = async (idCliente, data) => {
+  // Convertir asientos a strings para manejar BigInt correctamente
+  const asientoIds = data.asientos.map(id => String(id));
   
-  // Mejorar el manejo de errores y la URL
+  // Obtener detalles de los asientos
   const asientoDetalles = await Promise.all(asientoIds.map(async (id) => {
     try {
-      // Verificar la URL correcta según tus rutas
       const response = await axios.get(`http://kong:8000/api/localidades/asientos/${id}`);
-      
-      // Verificar si la respuesta tiene los datos esperados
       if (!response.data) {
         throw new Error(`No se encontraron datos para el asiento ${id}`);
       }
-      
       const { fila, numero, precio, estado } = response.data;
-      
       if (!fila || !numero || precio === undefined || estado !== 'disponible') {
         throw new Error(`El asiento ${id} no está disponible o tiene datos inválidos. Estado: ${estado}`);
       }
-      
       return { idAsiento: id, fila, numero, precio };
     } catch (error) {
       console.error(`Error al obtener datos del asiento ${id}:`, error.message);
@@ -32,13 +28,13 @@ exports.crearCompra = async (idUsuario, data) => {
     }
   }));
   
-  const subtotal = asientoDetalles.reduce((sum, detalle) => sum + detalle.precio, 0);
+  const subtotal = asientoDetalles.reduce((sum, detalle) => sum + parseFloat(detalle.precio), 0);
   const iva = subtotal * 0.15; // IVA establecido en 15%
   const montoTotal = subtotal + iva;
 
   // Crear la compra
   const compra = await Compra.create({
-    idUsuario,
+    idCliente,
     asientos: asientoIds,
     cantidad: asientoIds.length,
     subtotal,
@@ -48,11 +44,9 @@ exports.crearCompra = async (idUsuario, data) => {
     estado: 'completada'
   });
 
-  // Preparar datos para las entradas y enviar solicitud al microservicio de entradas
+  // Preparar datos para las entradas
   const entradaData = await Promise.all(asientoDetalles.map(async (detalle) => {
-    // Generar QR como string usando await
     const qrCode = await QRCode.toDataURL(`Entrada-${compra.idCompra}-${detalle.idAsiento}-${Date.now()}`);
-    
     return {
       idCompra: compra.idCompra,
       idAsiento: detalle.idAsiento,
@@ -61,15 +55,20 @@ exports.crearCompra = async (idUsuario, data) => {
     };
   }));
 
-  // Enviar solicitud al microservicio de entradas para crear las entradas
+  // Enviar solicitud al microservicio de entradas
   try {
-    await axios.post('http://kong:8000/api/entradas/bulk', entradaData, {
-      headers: { 'Content-Type': 'application/json' }
+    const response = await axios.post('http://kong:8000/api/entradas/bulk', entradaData, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.INTERNAL_SERVICE_TOKEN}` // Token para autenticación
+      }
     });
+    console.log('Entradas creadas:', response.data); // Para depuración
   } catch (err) {
-    console.error('Error al crear entradas en el microservicio de entradas:', err.message);
-    // Opcional: manejar el error (e.g., rollback de la compra si es crítico)
-    // Podrías hacer rollback de la compra aquí si es necesario
+    console.error('Error al crear entradas:', err.message, err.response?.data);
+    // Hacer rollback de la compra
+    await Compra.destroy({ where: { idCompra: compra.idCompra } });
+    throw new Error(`Error al crear entradas: ${err.message}`);
   }
 
   return compra;
@@ -91,4 +90,4 @@ exports.eliminarCompra = async (idCompra) => {
   return Compra.destroy({ where: { idCompra } });
 };
 
-exports.obtenerMisCompras = async (idUsuario) => Compra.findAll({ where: { idUsuario } });
+exports.obtenerMisCompras = async (idCliente) => Compra.findAll({ where: { idCliente } });

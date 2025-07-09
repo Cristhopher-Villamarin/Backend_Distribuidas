@@ -5,16 +5,12 @@ const Localidad = require('./localidad');
 const Asiento = sequelize.define('Asiento', {
   idAsiento: {
     type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true
+    primaryKey: true,
+    autoIncrement: true
   },
   idLocalidad: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: Localidad,
-      key: 'idLocalidad'
-    }
+    allowNull: false
   },
   fila: {
     type: DataTypes.STRING(10),
@@ -30,16 +26,17 @@ const Asiento = sequelize.define('Asiento', {
     defaultValue: 'disponible'
   },
   precio: {
-    type: DataTypes.DECIMAL(10,2),
+    type: DataTypes.DECIMAL(10, 2),
     allowNull: true
   }
 }, {
-  tableName: 'Asiento',
-  timestamps: true
+  tableName: 'Asiento', // Preserva el caso exacto
+  timestamps: true, // Esto generará createdAt y updatedAt
+  freezeTableName: true // Evita que Sequelize cambie el nombre de la tabla
 });
 
 // Relaciones
-Asiento.belongsTo(Localidad, { foreignKey: 'idLocalidad' });
-Localidad.hasMany(Asiento, { foreignKey: 'idLocalidad' });
+Asiento.belongsTo(Localidad, { foreignKey: 'idLocalidad', targetKey: 'idLocalidad' });
+Localidad.hasMany(Asiento, { foreignKey: 'idLocalidad', sourceKey: 'idLocalidad' });
 
 module.exports = Asiento;

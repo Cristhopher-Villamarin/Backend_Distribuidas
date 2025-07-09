@@ -7,7 +7,7 @@ const Compra = sequelize.define('Compra', {
     autoIncrement: true,
     primaryKey: true
   },
-  idUsuario: {
+  idCliente: {
     type: DataTypes.INTEGER,
     allowNull: false
   },

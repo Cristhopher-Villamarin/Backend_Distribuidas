@@ -16,7 +16,7 @@ const Entrada = sequelize.define('Entrada', {
     allowNull: false
   },
   codigoQR: {
-    type: DataTypes.STRING(255),
+    type: DataTypes.TEXT, // Cambiado de STRING a TEXT
     allowNull: false
   },
   estado: {

@@ -47,7 +47,7 @@ exports.obtenerMisEntradas = async (req, res, next) => {
   try {
     const { compraIds } = req.query; // Obtener compraIds desde los parámetros de consulta (e.g., ?compraIds=1,2,3)
     const idsArray = compraIds ? compraIds.split(',').map(id => parseInt(id)) : [];
-    const entradas = await entradaService.obtenerMisEntradas(req.user.idUsuario, idsArray);
+    const entradas = await entradaService.obtenerMisEntradas(req.user.id, idsArray);
     res.json(entradas);
   } catch (err) { next(err); }
 };

@@ -22,7 +22,7 @@ exports.eliminarEntrada = async (idEntrada) => {
   return Entrada.destroy({ where: { idEntrada } });
 };
 
-exports.obtenerMisEntradas = async (idUsuario, compraIds) => {
+exports.obtenerMisEntradas = async (idCliente, compraIds) => {
   // Filtrar entradas basadas en los idCompra proporcionados (deben venir del cliente o compras)
   if (!Array.isArray(compraIds) || compraIds.length === 0) {
     throw new Error('Deben proporcionarse los IDs de compras válidos');

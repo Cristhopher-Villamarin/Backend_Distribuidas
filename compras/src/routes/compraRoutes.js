@@ -14,6 +14,9 @@ router.post('/', auth, compraValidationRules(), (req, res, next) => {
   next();
 }, crearCompra);
 
+// Obtener compras del usuario autenticado (solo usuario)
+router.get('/miscompras', auth, obtenerMisCompras); // Mover esta ruta ANTES de /:id
+
 // Obtener todas las compras (solo admin)
 router.get('/', auth, role('admin'), obtenerTodasCompras);
 
@@ -29,8 +32,5 @@ router.put('/:id', auth, role('admin'), compraValidationRules(), (req, res, next
 
 // Eliminar compra (solo admin)
 router.delete('/:id', auth, role('admin'), eliminarCompra);
-
-// Obtener compras del usuario autenticado (solo usuario)
-router.get('/mis-compras', auth, obtenerMisCompras);
 
 module.exports = router;

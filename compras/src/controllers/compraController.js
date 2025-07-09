@@ -3,7 +3,10 @@ const notificationService = require('../services/notificationService');
 
 exports.crearCompra = async (req, res, next) => {
   try {
-    const compra = await compraService.crearCompra(req.user.idUsuario, req.body);
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: 'Usuario no autenticado' });
+    }
+    const compra = await compraService.crearCompra(req.user.id, req.body); // Cambiar idUsuario por id
     await notificationService.sendNotification('compras', { tipo: 'creacion', compra: compra.idCompra });
     res.status(201).json(compra);
   } catch (err) { next(err); }
@@ -44,7 +47,7 @@ exports.eliminarCompra = async (req, res, next) => {
 
 exports.obtenerMisCompras = async (req, res, next) => {
   try {
-    const compras = await compraService.obtenerMisCompras(req.user.idUsuario);
+    const compras = await compraService.obtenerMisCompras(req.user.id);
     res.json(compras);
   } catch (err) { next(err); }
 };
