@@ -17,6 +17,68 @@ Además, utiliza Kong como API Gateway, RabbitMQ para mensajería y Redis para c
 - [Docker](https://www.docker.com/products/docker-desktop) instalado y funcionando
 - [Docker Compose](https://docs.docker.com/compose/) (si tu Docker no lo incluye)
 
+## Instalación de dependencias y herramientas necesarias
+
+Sigue estos pasos si es la primera vez que trabajas con este proyecto y no tienes nada instalado en tu máquina:
+
+### 1. Instalar Docker y Docker Compose
+
+- Descarga e instala Docker Desktop desde: https://www.docker.com/products/docker-desktop
+  - Sigue el proceso de instalación para tu sistema operativo (Windows, Mac o Linux).
+  - Reinicia tu computadora si es necesario.
+- Docker Compose ya viene incluido con Docker Desktop. No necesitas instalarlo aparte.
+- Verifica la instalación abriendo una terminal y ejecutando:
+  ```sh
+  docker --version
+  docker compose version
+  ```
+  Ambas deben mostrar un número de versión.
+
+### 2. Clonar el repositorio
+
+Abre una terminal y ejecuta:
+```sh
+git clone <url-del-repo>
+cd Backend_Distribuidas
+```
+
+### 3. (Opcional) Instalar Git
+
+Si no tienes Git instalado, descárgalo desde: https://git-scm.com/downloads
+
+### 4. (Opcional) Instalar Postman
+
+Para probar los endpoints, descarga e instala Postman desde: https://www.postman.com/downloads/
+
+### 5. (Opcional) Configurar variables de entorno
+
+Cada microservicio puede tener un archivo `.env` con sus variables de entorno. Puedes copiar el archivo `.env.example` (si existe) o crear uno nuevo siguiendo los ejemplos del README.
+
+### 6. Instalar dependencias de Node.js (solo si quieres desarrollo local sin Docker)
+
+Si quieres correr algún microservicio fuera de Docker (por ejemplo para debug), necesitas Node.js y npm:
+- Descarga Node.js desde: https://nodejs.org/
+- Instala las dependencias de cada microservicio:
+  ```sh
+  cd usuarios && npm install && cd ..
+  cd categorias && npm install && cd ..
+  cd eventos && npm install && cd ..
+  cd localidades && npm install && cd ..
+  cd compras && npm install && cd ..
+  cd entradas && npm install && cd ..
+  # Repite para otros microservicios si los agregas
+  ```
+
+### 7. Levantar todos los servicios con Docker Compose
+
+Desde la raíz del proyecto:
+```sh
+docker compose up --build
+```
+Esto descargará las imágenes necesarias, construirá los microservicios y levantará todas las dependencias (bases de datos, RabbitMQ, Kong, Redis, etc).
+
+---
+
 ## Estructura del proyecto
 
 ```
