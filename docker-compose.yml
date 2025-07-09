@@ -215,6 +215,7 @@ services:
       timeout: 5s
       retries: 5
 
+
   # Microservicio de compras
   compras:
     build: ./compras
