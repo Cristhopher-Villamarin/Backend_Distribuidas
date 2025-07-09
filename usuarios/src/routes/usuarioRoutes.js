@@ -1,5 +1,5 @@
 const express = require('express');
-const { registrar, login, obtenerPerfil, actualizarPerfil, actualizarUsuarioPorAdmin, eliminarUsuario, obtenerTodos } = require('../controllers/usuarioController');
+const { registrar, loginFase1,loginFase2, obtenerPerfil, actualizarPerfil, actualizarUsuarioPorAdmin, eliminarUsuario, obtenerTodos } = require('../controllers/usuarioController');
 const { usuarioValidationRules, actualizarUsuarioValidationRules } = require('../utils/validations');
 const { validationResult } = require('express-validator');
 const auth = require('../middleware/authMiddleware');
@@ -20,7 +20,8 @@ router.post('/', auth, role('admin'), usuarioValidationRules(), (req, res, next)
   next();
 }, registrar);
 
-router.post('/login', login);
+router.post('/login/fase1', loginFase1);
+router.post('/login/fase2', loginFase2);
 
 // Obtener perfil del usuario autenticado (requiere token, no necesariamente admin)
 router.get('/perfil', auth, obtenerPerfil);

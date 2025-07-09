@@ -43,16 +43,59 @@ services:
   - name: localidades-service
     url: http://localidades:3003
     routes:
-    - name: localidades-route
-      paths:
-        - /api/localidades
-      methods:
-        - GET
-        - POST
-        - PUT
-        - DELETE
-      strip_path: false
+      - name: localidades-route
+        paths:
+          - /api/localidades
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+        strip_path: false
+      - name: asientos-reservar-route
+        paths:
+          - /api/localidades/asientos/reservar
+        methods:
+          - POST
+        strip_path: false
+      - name: asientos-confirmar-route
+        paths:
+          - /api/localidades/asientos/confirmar
+        methods:
+          - POST
+        strip_path: false
 
+  - name: compras-service
+    url: http://compras:3004
+    routes:
+      - name: compras-route
+        paths:
+          - /api/compras
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+        strip_path: false
+
+  - name: entradas-service
+    url: http://entradas:3005
+    routes:
+      - name: entradas-route
+        paths:
+          - /api/entradas
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+        strip_path: false
+      - name: entradas-bulk-route
+        paths:
+          - /api/entradas/bulk
+        methods:
+          - POST
+        strip_path: false
 
 plugins:
   - name: cors
@@ -114,6 +157,44 @@ plugins:
 
   - name: cors
     service: localidades-service
+    config:
+      origins:
+        - "*"
+      methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+      headers:
+        - Accept
+        - Authorization
+        - Content-Type
+        - X-Requested-With
+      credentials: true
+      preflight_continue: false
+
+  - name: cors
+    service: compras-service
+    config:
+      origins:
+        - "*"
+      methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+      headers:
+        - Accept
+        - Authorization
+        - Content-Type
+        - X-Requested-With
+      credentials: true
+      preflight_continue: false
+
+  - name: cors
+    service: entradas-service
     config:
       origins:
         - "*"

@@ -9,7 +9,9 @@ const {
   obtenerTodosAsientos,
   obtenerAsientoPorId,
   actualizarAsiento,
-  eliminarAsiento
+  eliminarAsiento,
+  reservarAsiento,
+  confirmarReservaAsiento
 } = require('../controllers/localidadController');
 
 const { localidadValidationRules, asientoValidationRules } = require('../utils/validations');
@@ -68,5 +70,11 @@ router.put('/asientos/:id', auth, role('admin'), asientoValidationRules(), (req,
 
 // Eliminar asiento (solo admin)
 router.delete('/asientos/:id', auth, role('admin'), eliminarAsiento);
+
+// Reservar asiento temporalmente (autenticado)
+router.post('/asientos/reservar', auth, reservarAsiento);
+
+// Confirmar reserva de asiento (autenticado, usado por microservicio de compras)
+router.post('/asientos/confirmar', confirmarReservaAsiento);
 
 module.exports = router;

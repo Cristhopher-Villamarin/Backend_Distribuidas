@@ -1,5 +1,6 @@
 const localidadService = require('../services/localidadService');
 const notificationService = require('../services/notificationService');
+const { sendToQueue } = require('../config/rabbitmq');
 
 // Controladores para Localidad
 exports.crearLocalidad = async (req, res, next) => {
@@ -77,7 +78,13 @@ exports.obtenerAsientoPorId = async (req, res, next) => {
   try {
     const asiento = await localidadService.buscarAsientoPorId(req.params.id);
     if (!asiento) return res.status(404).json({ error: 'Asiento no encontrado' });
-    res.json(asiento);
+    res.json({
+      idAsiento: asiento.idAsiento,
+      fila: asiento.fila,
+      numero: asiento.numero,
+      precio: asiento.precio,
+      estado: asiento.estado
+    });
   } catch (err) {
     next(err);
   }
@@ -101,6 +108,51 @@ exports.eliminarAsiento = async (req, res, next) => {
     await notificationService.sendNotification('asientos', { tipo: 'eliminacion', asiento: id });
     res.json({ message: 'Asiento eliminado correctamente' });
   } catch (err) {
+    next(err);
+  }
+};
+
+exports.reservarAsiento = async (req, res, next) => {
+  try {
+    const { idAsiento } = req.body;
+    if (!idAsiento) {
+      return res.status(400).json({ error: 'Se requiere idAsiento' });
+    }
+    const asiento = await localidadService.buscarAsientoPorId(idAsiento);
+    if (!asiento) {
+      return res.status(404).json({ error: 'Asiento no encontrado' });
+    }
+    if (asiento.estado !== 'disponible') {
+      return res.status(400).json({ error: `El asiento está en estado ${asiento.estado}, no puede reservarse` });
+    }
+    await localidadService.actualizarAsiento(idAsiento, { estado: 'reservado' });
+    await sendToQueue('asiento_reservas', { idAsiento });
+    await notificationService.sendNotification('asientos', { tipo: 'reserva', asiento: idAsiento });
+    res.status(200).json({ message: 'Asiento reservado temporalmente', idAsiento });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.confirmarReservaAsiento = async (req, res, next) => {
+  try {
+    const { idAsiento } = req.body;
+    if (!idAsiento) {
+      return res.status(400).json({ error: 'Se requiere idAsiento' });
+    }
+    const asiento = await localidadService.buscarAsientoPorId(idAsiento);
+    if (!asiento) {
+      return res.status(404).json({ error: 'Asiento no encontrado' });
+    }
+    if (asiento.estado !== 'reservado') {
+      console.warn(`Intento de confirmar asiento ${idAsiento} que no está reservado (estado: ${asiento.estado})`);
+      return res.status(400).json({ error: `El asiento no está reservado, estado actual: ${asiento.estado}` });
+    }
+    await localidadService.actualizarAsiento(idAsiento, { estado: 'no disponible' });
+    await notificationService.sendNotification('asientos', { tipo: 'confirmacion', asiento: idAsiento });
+    res.status(200).json({ message: 'Reserva confirmada, asiento no disponible', idAsiento });
+  } catch (err) {
+    console.error(`Error al confirmar reserva del asiento ${req.body.idAsiento}:`, err.message);
     next(err);
   }
 };

@@ -47,8 +47,7 @@ exports.usuarioValidationRules = () => [
     .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/).withMessage('El apellido solo debe contener letras y espacios'),
   body('email')
     .isEmail().withMessage('Debe ser un email válido')
-    .normalizeEmail()
-    .matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/).withMessage('Formato de email inválido'),
+    .normalizeEmail().withMessage('Formato de email inválido'),
   body('telefono')
     .isLength({ min: 7, max: 15 }).withMessage('El teléfono debe tener entre 7 y 15 dígitos')
     .matches(/^\d+$/).withMessage('El teléfono solo debe contener dígitos'),
@@ -78,11 +77,17 @@ exports.actualizarUsuarioValidationRules = () => [
     .optional()
     .isLength({ min: 2, max: 20 }).withMessage('El apellido debe tener entre 2 y 20 caracteres')
     .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/).withMessage('El apellido solo debe contener letras y espacios'),
-  body('email')
-    .optional()
-    .isEmail().withMessage('Debe ser un email válido')
-    .normalizeEmail()
-    .matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/).withMessage('Formato de email inválido'),
+ body('email')
+  .notEmpty().withMessage('El email es obligatorio')
+  .isEmail().withMessage('Debe ser un email válido')
+  .custom((value) => {
+    if (!value.includes('@')) {
+      throw new Error('El correo debe contener un "@" y un dominio válido');
+    }
+    return true;
+  })
+  .matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)
+  .withMessage('Formato de email inválido'),
   body('telefono')
     .optional()
     .isLength({ min: 7, max: 15 }).withMessage('El teléfono debe tener entre 7 y 15 dígitos')
@@ -101,7 +106,10 @@ exports.actualizarUsuarioValidationRules = () => [
   body('provincia')
     .optional()
     .isLength({ max: 20 }).withMessage('La provincia no debe exceder los 20 caracteres'),
-  body('rol')
-    .optional()
-    .isIn(['cliente', 'admin', 'organizador']).withMessage('Rol inválido'),
+body('rol')
+  .notEmpty().withMessage('El rol es obligatorio')
+  .isIn(['cliente', 'admin', 'organizador']).withMessage('Rol inválido'),
+  body('estado')
+    .notEmpty().withMessage('El estado es obligatorio')
+    .isIn(['activo', 'inactivo', 'suspendido']).withMessage('Estado inválido'),
 ];

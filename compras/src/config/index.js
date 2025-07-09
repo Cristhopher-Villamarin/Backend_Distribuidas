@@ -8,10 +8,7 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, proces
   port: Number(process.env.DB_PORT),
   dialect: 'postgres',
   dialectOptions: {
-    ssl: process.env.NODE_ENV === 'production' ? {
-      require: true,
-      ca: process.env.DB_CA_CERT
-    } : false
+    ssl: process.env.NODE_ENV === 'production' ? { require: true, ca: process.env.DB_CA_CERT } : false
   },
   pool: {
     max: 10,
@@ -24,9 +21,9 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, proces
 (async () => {
   try {
     await sequelize.authenticate();
-    console.log('Conexión a la base de datos establecida');
+    console.log('Conexión a la base de datos de compras establecida');
   } catch (error) {
-    console.error('No se pudo conectar a la base de datos:', error);
+    console.error('No se pudo conectar a la base de datos de compras:', error);
     process.exit(1);
   }
 })();
@@ -38,7 +35,4 @@ const rabbitMQConfig = {
   password: process.env.RABBITMQ_PASSWORD
 };
 
-module.exports = {
-  sequelize,
-  rabbitMQConfig
-};
+module.exports = { sequelize, rabbitMQConfig };
