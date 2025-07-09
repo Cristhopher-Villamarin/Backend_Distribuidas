@@ -20,7 +20,8 @@ router.post('/', auth, role('admin'), usuarioValidationRules(), (req, res, next)
   next();
 }, registrar);
 
-router.post('/login', login);
+router.post('/login/fase1', loginFase1);
+router.post('/login/fase2', loginFase2);
 
 // Obtener perfil del usuario autenticado (requiere token, no necesariamente admin)
 router.get('/perfil', auth, obtenerPerfil);

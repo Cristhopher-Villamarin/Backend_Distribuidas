@@ -2,6 +2,8 @@ const usuarioService = require('../services/usuarioService');
 const notificationService = require('../services/notificationService');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const redisClient = require('../config/redisClient');
+const emailService = require('../utils/emailService');
 
 
 
@@ -14,16 +16,55 @@ exports.registrar = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// Login usuario
-exports.login = async (req, res, next) => {
+// Login usuario 1
+exports.loginFase1 = async (req, res, next) => {
   try {
-    const usuario = await usuarioService.buscarPorEmail(req.body.email);
+    const { email, contrasenia } = req.body;
+    const usuario = await usuarioService.buscarPorEmail(email);
+
     if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
-    const valido = await bcrypt.compare(req.body.contrasenia, usuario.contrasenia);
-    if (!valido) return res.status(401).json({ error: 'Contraseña incorrecta' });
-    const token = jwt.sign({ id: usuario.idCliente, rol: usuario.rol }, process.env.JWT_SECRET, { expiresIn: '40m' });
-    res.json({ token });
-  } catch (err) { next(err); }
+
+    const esValido = await bcrypt.compare(contrasenia, usuario.contrasenia);
+    if (!esValido) return res.status(401).json({ error: 'Contraseña incorrecta' });
+
+    const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+
+    await redisClient.set(`2fa:${email}`, codigo, 'EX', 300); // Expira en 5 min
+
+    await emailService.enviarCodigo(email, codigo);
+
+    res.status(200).json({ message: 'Código de verificación enviado al correo electrónico' });
+  } catch (err) {
+    next(err);
+  }
+};
+// Login usuario 2
+exports.loginFase2 = async (req, res, next) => {
+  try {
+    const { email, codigo } = req.body;
+
+    const codigoGuardado = await redisClient.get(`2fa:${email}`);
+    if (!codigoGuardado) {
+      return res.status(400).json({ error: 'Código expirado o no encontrado' });
+    }
+
+    if (codigo !== codigoGuardado) {
+      return res.status(401).json({ error: 'Código incorrecto' });
+    }
+
+    await redisClient.del(`2fa:${email}`); // Eliminar después de usar
+
+    const usuario = await usuarioService.buscarPorEmail(email);
+    const token = jwt.sign(
+      { id: usuario.idCliente, rol: usuario.rol },
+      process.env.JWT_SECRET,
+      { expiresIn: '30m' } // o más si lo deseas
+    );
+
+    res.status(200).json({ token });
+  } catch (err) {
+    next(err);
+  }
 };
 
 // Obtener perfil del usuario autenticado
