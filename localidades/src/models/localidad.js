@@ -4,18 +4,11 @@ const { sequelize } = require('../config');
 const Localidad = sequelize.define('Localidad', {
   idLocalidad: {
     type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true
+    primaryKey: true,
+    autoIncrement: true
   },
   idEvento: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    validate: {
-      notNull: { msg: 'El evento es obligatorio' }
-    }
-  },
-  precio: {
-    type: DataTypes.DECIMAL(10,2),
     allowNull: false
   },
   capacidad: {
@@ -28,11 +21,13 @@ const Localidad = sequelize.define('Localidad', {
   },
   nombre_localidad: {
     type: DataTypes.STRING(20),
-    allowNull: false
+    allowNull: false,
+    unique: true
   }
 }, {
-  tableName: 'Localidad',
-  timestamps: true
+  tableName: 'Localidad', // Preserva el caso exacto
+  timestamps: true, // Esto generará createdAt y updatedAt
+  freezeTableName: true // Evita que Sequelize cambie el nombre de la tabla a plural
 });
 
 module.exports = Localidad;

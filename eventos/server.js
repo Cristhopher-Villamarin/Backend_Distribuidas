@@ -18,6 +18,14 @@ app.use(express.json());
 // Rutas
 app.use('/api/eventos', eventoRoutes);
 
+app.use((req, res, next) => {
+  res.status(404).json({
+    error: 'Ruta no encontrada',
+    message: `La ruta [${req.method}] ${req.originalUrl} no existe en este servidor.`,
+    suggestion: 'Verifique la URL y el método HTTP utilizado.'
+  });
+});
+
 // Manejo de errores global
 app.use(errorHandler);
 

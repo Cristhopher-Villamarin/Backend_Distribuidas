@@ -1,3 +1,4 @@
+// server.js
 require('dotenv').config();
 const express = require('express');
 const http = require('http');
@@ -6,6 +7,7 @@ const { sequelize } = require('./src/config');
 const localidadRoutes = require('./src/routes/localidadRoutes');
 const errorHandler = require('./src/utils/errorHandler');
 const socketHandler = require('./src/sockets/socketHandler');
+const { setupAsientoReservaConsumer } = require('./src/config/rabbitmq');
 
 const app = express();
 const server = http.createServer(app);
@@ -13,7 +15,47 @@ const io = require('socket.io')(server, { cors: { origin: '*' } });
 
 // Middlewares
 app.use(cors());
-app.use(express.json());
+
+// Middleware personalizado para manejar BigInt en JSON
+app.use(express.text({ type: 'application/json' }));
+app.use((req, res, next) => {
+  if (
+    req.headers['content-type'] === 'application/json' &&
+    req.body && // Verificar que body no esté vacío o undefined
+    typeof req.body === 'string' // Verificar que body sea un string
+  ) {
+    try {
+      // Parsear JSON manualmente preservando números grandes como strings
+      req.body = JSON.parse(req.body, (key, value) => {
+        // Si el valor es un número muy grande, mantenerlo como string
+        if (typeof value === 'number' && value > Number.MAX_SAFE_INTEGER) {
+          return value.toString();
+        }
+        // Si es un string que representa un número grande, mantenerlo como string
+        if (typeof value === 'string' && /^\d{16,}$/.test(value)) {
+          return value;
+        }
+        return value;
+      });
+    } catch (error) {
+      console.error('Error al parsear JSON:', error);
+      return res.status(400).json({ error: 'JSON inválido' });
+    }
+  } else {
+    req.body = req.body || {}; // Asegurar que req.body sea un objeto vacío si no hay body
+  }
+  next();
+});
+
+// Middleware adicional para convertir IDs en parámetros de ruta
+app.use('/api/localidades', (req, res, next) => {
+  // Convertir parámetros de ruta a strings para manejar BigInt
+  if (req.params.id) {
+    req.params.id = String(req.params.id);
+    console.log(`Parámetro ID convertido: ${req.params.id}`);
+  }
+  next();
+});
 
 // Rutas
 app.use('/api/localidades', localidadRoutes);
@@ -23,11 +65,15 @@ app.use(errorHandler);
 
 // WebSockets
 socketHandler(io);
-  
+
 // Sincronizar modelos y levantar servidor
 sequelize.sync().then(() => {
   server.listen(process.env.PORT || 3003, () => {
-    console.log('Microservicio de eventos corriendo en el puerto', process.env.PORT || 3003);
+    console.log('Microservicio de localidades corriendo en el puerto', process.env.PORT || 3003);
+    // Iniciar consumidor de RabbitMQ para reservas de asientos
+    setupAsientoReservaConsumer().catch(err => {
+      console.error('Error al iniciar consumidor de RabbitMQ:', err);
+    });
   });
 }).catch(err => {
   console.error('Error al conectar con la base de datos:', err);
