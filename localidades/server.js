@@ -1,3 +1,4 @@
+// server.js
 require('dotenv').config();
 const express = require('express');
 const http = require('http');
@@ -6,6 +7,7 @@ const { sequelize } = require('./src/config');
 const localidadRoutes = require('./src/routes/localidadRoutes');
 const errorHandler = require('./src/utils/errorHandler');
 const socketHandler = require('./src/sockets/socketHandler');
+const { setupAsientoReservaConsumer } = require('./src/config/rabbitmq');
 
 const app = express();
 const server = http.createServer(app);
@@ -17,7 +19,11 @@ app.use(cors());
 // Middleware personalizado para manejar BigInt en JSON
 app.use(express.text({ type: 'application/json' }));
 app.use((req, res, next) => {
-  if (req.headers['content-type'] === 'application/json') {
+  if (
+    req.headers['content-type'] === 'application/json' &&
+    req.body && // Verificar que body no esté vacío o undefined
+    typeof req.body === 'string' // Verificar que body sea un string
+  ) {
     try {
       // Parsear JSON manualmente preservando números grandes como strings
       req.body = JSON.parse(req.body, (key, value) => {
@@ -35,6 +41,8 @@ app.use((req, res, next) => {
       console.error('Error al parsear JSON:', error);
       return res.status(400).json({ error: 'JSON inválido' });
     }
+  } else {
+    req.body = req.body || {}; // Asegurar que req.body sea un objeto vacío si no hay body
   }
   next();
 });
@@ -57,11 +65,15 @@ app.use(errorHandler);
 
 // WebSockets
 socketHandler(io);
-  
+
 // Sincronizar modelos y levantar servidor
 sequelize.sync().then(() => {
   server.listen(process.env.PORT || 3003, () => {
     console.log('Microservicio de localidades corriendo en el puerto', process.env.PORT || 3003);
+    // Iniciar consumidor de RabbitMQ para reservas de asientos
+    setupAsientoReservaConsumer().catch(err => {
+      console.error('Error al iniciar consumidor de RabbitMQ:', err);
+    });
   });
 }).catch(err => {
   console.error('Error al conectar con la base de datos:', err);

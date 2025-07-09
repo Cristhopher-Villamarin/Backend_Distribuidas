@@ -52,6 +52,18 @@ services:
           - PUT
           - DELETE
         strip_path: false
+      - name: asientos-reservar-route
+        paths:
+          - /api/localidades/asientos/reservar
+        methods:
+          - POST
+        strip_path: false
+      - name: asientos-confirmar-route
+        paths:
+          - /api/localidades/asientos/confirmar
+        methods:
+          - POST
+        strip_path: false
 
   - name: compras-service
     url: http://compras:3004
