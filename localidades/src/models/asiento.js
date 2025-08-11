@@ -32,7 +32,14 @@ const Asiento = sequelize.define('Asiento', {
 }, {
   tableName: 'Asiento', // Preserva el caso exacto
   timestamps: true, // Esto generará createdAt y updatedAt
-  freezeTableName: true // Evita que Sequelize cambie el nombre de la tabla
+  freezeTableName: true, // Evita que Sequelize cambie el nombre de la tabla
+  indexes: [
+    {
+      unique: true,
+      fields: ['fila', 'numero'], // Restricción de unicidad
+      name: 'unique_asiento_localidad_fila_numero',
+    },
+  ],
 });
 
 // Relaciones

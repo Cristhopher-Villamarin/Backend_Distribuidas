@@ -54,14 +54,58 @@ exports.eliminarLocalidad = async (req, res, next) => {
   }
 };
 
-// Controladores para Asiento
+// Controlador para crear Asiento evitando duplicados y manejando concurrencia
 exports.crearAsiento = async (req, res, next) => {
+  const { idLocalidad, fila, numero, estado, precio } = req.body;
+
+  const t = await sequelize.transaction();
   try {
-    const asiento = await localidadService.crearAsiento(req.body);
-    await notificationService.sendNotification('asientos', { tipo: 'creacion', asiento: asiento.idAsiento });
-    res.status(201).json(asiento);
+    // 1) Chequeo previo para responder más claro si ya existe
+    const existente = await Asiento.findOne({
+      where: { idLocalidad, fila, numero },
+      transaction: t,
+      lock: t.LOCK.UPDATE, // ayuda a reducir carreras en la misma combinación
+    });
+
+    if (existente) {
+      await t.rollback();
+      return res.status(400).json({
+        error: `Ya existe un asiento con fila ${fila} y número ${numero} para la localidad ${idLocalidad}`,
+      });
+    }
+
+    // 2) Crear (la BD seguirá protegiendo con el índice único)
+    const asiento = await Asiento.create(
+      { idLocalidad, fila, numero, estado, precio },
+      { transaction: t }
+    );
+
+    await t.commit();
+
+    // 3) Notificar solo si se creó
+    await notificationService.sendNotification('asientos', {
+      tipo: 'creacion',
+      asiento: asiento.idAsiento,
+    });
+
+    return res.status(201).json(asiento);
+
   } catch (err) {
-    next(err);
+    // Si algo falló durante la transacción, revertimos
+    try { await t.rollback(); } catch {}
+
+    // Manejo especial para violación de unicidad (carrera)
+    const code = err?.original?.code || err?.code;
+    if (code === '23505') {
+      // Mensaje consistente con tu app
+      return res.status(409).json({
+        error: `Ya existe un asiento con fila ${fila} y número ${numero} para la localidad ${idLocalidad}`,
+        detalle: 'Conflicto de unicidad (índice).',
+      });
+    }
+
+    // Otros errores al middleware
+    return next(err);
   }
 };
 

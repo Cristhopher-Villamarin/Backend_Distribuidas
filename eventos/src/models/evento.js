@@ -82,7 +82,14 @@ const Evento = sequelize.define('Evento', {
   }
 }, {
   tableName: 'Evento',
-  timestamps: true
+  timestamps: true,
+  indexes: [
+    {
+      unique: true,
+      name: 'unique_evento_ubicacion_fechas',
+      fields: ['ubicacion', 'fecha_inicio', 'fecha_fin', 'hora_inicio']
+    }
+     ]
 });
 
 
